@@ -28,7 +28,7 @@ console.log(
 //ЗАДАНИЕ №2
 //-----------------------------------------------------------------------------
 //Получить список всех ссылок, которые не находятся внутри списка ul
-const arrAOutUL = Array.from(document.links).filter(a => !a.closest("ul"));
+const arrAOutUL = document.querySelectorAll(":not(li) > a");
 console.log(arrAOutUL);
 
 //ЗАДАНИЕ №3
@@ -96,6 +96,19 @@ const users = [
     phone: "+1 (890) 461-2088",
     registered: "2016-03-04T03:36:38 -02:00",
     nestedField: { total: 200 }
+  },
+  {
+    _id: "6c2b3325d220ef972fb10144",
+    isActive: true,
+    balance: 2841.12,
+    age: 29,
+    name: "Anna Anderson",
+    gender: "female",
+    company: "SONY",
+    email: "anderson@sony.com",
+    phone: "+38 (063) 756-2323",
+    registered: "2013-10-06T03:34:11 +02:00",
+    nestedField: { total: 350 }
   }
 ];
 
@@ -116,6 +129,7 @@ function createTabelUsers(tableFields, users) {
   table.style.width = "960px";
   const thead = table.appendChild(document.createElement("thead"));
   thead.className = "thead-dark";
+  const tbody = table.appendChild(document.createElement("tbody"));
 
   //Верхняя строка. Заполняем заголовки столбцов
   const trHeader = thead.appendChild(document.createElement("tr"));
@@ -129,7 +143,7 @@ function createTabelUsers(tableFields, users) {
   //считаем общий баланс
   for (const user of users) {
     rowIndex++;
-    const tr = thead.appendChild(document.createElement("tr"));
+    const tr = tbody.appendChild(document.createElement("tr"));
     for (const field in tableFields) {
       const td = tr.appendChild(document.createElement("td"));
       if (user.hasOwnProperty(field)) td.textContent = user[field];
@@ -145,7 +159,8 @@ function createTabelUsers(tableFields, users) {
   }
 
   //Нижняя строка. Создаем строку и ячейку с общим балансом
-  const tdTotal = thead
+  const tfoot = table.appendChild(document.createElement("tfoot"));
+  const tdTotal = tfoot
     .appendChild(document.createElement("tr"))
     .appendChild(document.createElement("td"));
   tdTotal.setAttribute("colspan", Object.keys(tableFields).length);
@@ -188,49 +203,37 @@ document.addEventListener(
 //пользователи. Иконки можете взять с font awesome, в качестве фреймворка
 //использовался bootstrap.
 
-const toSortTable = (function() {
-  let SortType = false;
+function toSortTable(el) {
+  const sortUsers = users.sort(
+    (elA, elB) =>
+      el.srcElement.dataset.nextSortType * (elA.balance - elB.balance)
+  );
 
-  return function(el) {
-    let sortUsers = [];
+  el.srcElement.dataset.nextSortType *= -1; //менЯет направление сортировки
+  el.srcElement.querySelector("i").classList.toggle("turn"); //toggle :)
 
-    //получаем первые дочерний тэг <I>
-    const icnEl = Array.from(el.srcElement.children).filter(
-      e => e.tagName === "I"
-    )[0];
-    //делаем <I> видемым
-    if (icnEl.style.display) {
-      icnEl.style.display = "";
-    }
-    //сортируем пользователей по балансу
-    switch (SortType) {
-      case true:
-        SortType = false;
-        icnEl.className = "fas fa-sort-amount-up ml-2";
-        sortUsers = users.sort((elA, elB) => elB.balance - elA.balance);
-        break;
-      case false:
-        SortType = true;
-        icnEl.className = "fas fa-sort-amount-down ml-2";
-        sortUsers = users.sort((elA, elB) => elA.balance - elB.balance);
-        break;
-    }
-    //удаляем старую таблицу, генерируем и добавляем новую
-    tblContainer.lastChild.remove();
-    tblContainer.appendChild(createTabelUsers(tableFields, sortUsers));
-  };
-})();
+  if (tblContainer.querySelector("table"))
+    tblContainer.querySelector("table").remove();
+  tblContainer.appendChild(createTabelUsers(tableFields, sortUsers));
+}
+
+//Стиль .turn развернутой на 180' стрелочки
+const icnTurn = document.createElement("style");
+icnTurn.type = "text/css";
+icnTurn.innerText = `.turn { transform: rotate(180deg); }`;
+document.head.appendChild(icnTurn);
 
 const icnSort = document.createElement("i");
-icnSort.style.display = "none";
-icnSort.className = "fas fa-sort-amount-down ml-2";
+icnSort.className = "fas fa-arrow-up ml-2";
 
 const btnSort = document.createElement("button");
 btnSort.type = "button";
 btnSort.className = "btn btn-primary btn-sm m-2 pr-2";
 btnSort.textContent = "Sort by Balance";
+btnSort.dataset.nextSortType = "1";
 
 btnSort.appendChild(icnSort);
 tblContainer.insertAdjacentElement("afterbegin", btnSort);
 
 btnSort.addEventListener("click", toSortTable);
+btnSort.click(); //Сразу сортируем данные
