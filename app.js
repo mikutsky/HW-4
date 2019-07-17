@@ -1,0 +1,239 @@
+//ЗАДАНИЕ №1
+//-----------------------------------------------------------------------------
+//Создать функцию, которая принимает два элемента. Функция проверяет, является
+//ли первый элемент родителем для второго:
+// isParent(parent, child);
+// isParent(document.body.children[0], document.querySelector('mark'));
+// → true так как первый див является родительским элементом для mark
+// isParent(document.querySelector('ul'), document.querySelector('mark'));
+// → false так ul НЕ является родительским элементом для mark
+//Функция принимает только DOM объекты.
+
+function isParent(parent, child) {
+  if (!(parent instanceof HTMLElement) || !(child instanceof HTMLElement))
+    return console.error("isParent(): Some arguments is not DOM object.");
+
+  if (child.parentElement === parent) return true;
+  if (child.parentElement) return isParent(parent, child.parentElement);
+  return false;
+}
+
+console.log(
+  isParent(document.body.children[0], document.querySelector("mark"))
+);
+console.log(
+  isParent(document.querySelector("ul"), document.querySelector("mark"))
+);
+
+//ЗАДАНИЕ №2
+//-----------------------------------------------------------------------------
+//Получить список всех ссылок, которые не находятся внутри списка ul
+const arrAOutUL = document.querySelectorAll(":not(li) > a");
+console.log(arrAOutUL);
+
+//ЗАДАНИЕ №3
+//-----------------------------------------------------------------------------
+//Найти элемент, который находится перед и после списка ul
+const elBeforeUl = document.querySelector("ul").previousElementSibling;
+const elAfterUl = document.querySelector("ul").nextElementSibling;
+
+console.dir(elBeforeUl);
+console.dir(elAfterUl);
+
+//ЗАДАНИЕ №4
+//-----------------------------------------------------------------------------
+//Дан массив пользователей, его можно скопировать отсюда из первой задачи,
+//создать таблицу вида:
+// (КАРТИНКА из презентации)
+//Условия:
+//- В конце таблицы обязательно последняя tr должна содержать total balance всех
+//пользователей из таблицы при этом он должен быть всегда выровнен по правому
+//краю.
+//- Количество пользователей может быть любым.
+//- Таблица и все ее содержимое должно создаваться через js, в разметке у вас
+//может быть только контейнер какой то.
+//- В коде у вас должна быть переменная которая будет содержать в виде объекта
+//список полей и заголовков th которые будут выводиться в таблице. Что то типа
+//{ name: ‘Name’, email: ‘Email’... } соответственно ключ объекта это ваше поле
+//которое вы хотите вывести из объекта пользователя а значение это заголовок th.
+
+const users = [
+  {
+    _id: "5d220b10e8265cc978e2586b",
+    isActive: true,
+    balance: 2853.33,
+    age: 20,
+    name: "Buckner Osborne",
+    gender: "male",
+    company: "EMPIRICA",
+    email: "bucknerosborne@empirica.com",
+    phone: "+1 (850) 411-2997",
+    registered: "2018-08-13T04:28:45 -03:00",
+    nestedField: { total: 300 }
+  },
+  {
+    _id: "5d220b10144ef972f6c2b332",
+    isActive: true,
+    balance: 1464.63,
+    age: 38,
+    name: "Rosalie Smith",
+    gender: "female",
+    company: "KATAKANA",
+    email: "rosaliesmith@katakana.com",
+    phone: "+1 (943) 463-2496",
+    registered: "2016-12-09T05:15:34 -02:00",
+    nestedField: { total: 400 }
+  },
+  {
+    _id: "5d220b1083a0494655cdecf6",
+    isActive: false,
+    balance: 2823.39,
+    age: 40,
+    name: "Estrada Davenport",
+    gender: "male",
+    company: "EBIDCO",
+    email: "estradadavenport@ebidco.com",
+    phone: "+1 (890) 461-2088",
+    registered: "2016-03-04T03:36:38 -02:00",
+    nestedField: { total: 200 }
+  },
+  {
+    _id: "6c2b3325d220ef972fb10144",
+    isActive: true,
+    balance: 2841.12,
+    age: 29,
+    name: "Anna Anderson",
+    gender: "female",
+    company: "SONY",
+    email: "anderson@sony.com",
+    phone: "+38 (063) 756-2323",
+    registered: "2013-10-06T03:34:11 +02:00",
+    nestedField: { total: 350 }
+  }
+];
+
+const tableFields = {
+  _id: "#",
+  name: "Name",
+  email: "Email",
+  balance: "Balance"
+};
+const tblContainer = document.querySelector("#table-users-total-balance");
+
+function createTabelUsers(tableFields, users) {
+  let rowIndex = 0;
+  let totalBalance = 0;
+
+  const table = document.createElement("table");
+  table.className = "table m-2";
+  table.style.width = "960px";
+  const thead = table.appendChild(document.createElement("thead"));
+  thead.className = "thead-dark";
+  const tbody = table.appendChild(document.createElement("tbody"));
+
+  //Верхняя строка. Заполняем заголовки столбцов
+  const trHeader = thead.appendChild(document.createElement("tr"));
+  for (const field in tableFields) {
+    const th = trHeader.appendChild(document.createElement("th"));
+    th.textContent = tableFields[field];
+  }
+
+  //Перебираем массив пользователей и полей. Создаем ячейки и заполняем
+  //соответствующими данными. id заполняем порядковым номером,
+  //считаем общий баланс
+  for (const user of users) {
+    rowIndex++;
+    const tr = tbody.appendChild(document.createElement("tr"));
+    for (const field in tableFields) {
+      const td = tr.appendChild(document.createElement("td"));
+      if (user.hasOwnProperty(field)) td.textContent = user[field];
+      switch (field) {
+        case "_id":
+          td.textContent = rowIndex;
+          break;
+        case "balance":
+          totalBalance += user[field];
+          break;
+      }
+    }
+  }
+
+  //Нижняя строка. Создаем строку и ячейку с общим балансом
+  const tfoot = table.appendChild(document.createElement("tfoot"));
+  const tdTotal = tfoot
+    .appendChild(document.createElement("tr"))
+    .appendChild(document.createElement("td"));
+  tdTotal.setAttribute("colspan", Object.keys(tableFields).length);
+  tdTotal.parentElement.style.textAlign = "right";
+  tdTotal.textContent = "Total balance: " + String(totalBalance.toFixed(2));
+
+  //Возвращаем фрагмент с созданной таблицей
+  return document.createDocumentFragment().appendChild(table);
+}
+
+tblContainer.appendChild(createTabelUsers(tableFields, users));
+
+//ЗАДАНИЕ №5
+//-----------------------------------------------------------------------------
+//По нажатию на кнопку "btn-msg" должен появиться алерт с тем текстом который
+//находится в атрибуте data-text у кнопки.
+
+const btnMsg = document.querySelector("#btn-msg");
+btnMsg.addEventListener("click", el => {
+  return alert(el.srcElement.dataset.text);
+});
+
+//ЗАДАНИЕ №6
+//-----------------------------------------------------------------------------
+//При нажатии на любой узел документа показать в элементе с id=tag имя тега
+//нажатого элемента.
+
+const idTag = document.querySelector("#tag");
+document.addEventListener(
+  "click",
+  el => (idTag.textContent = el.srcElement.tagName)
+);
+
+//ЗАДАНИЕ №7
+//-----------------------------------------------------------------------------
+//Из презентации “Занятие 7 - Манипуляция DOM. Работа с атрибутами.” дополнить
+//функционал для таблицы из задачи 6. Создать кнопку которая будет при клике
+//сортировать пользователей по возрастанию или убыванию поля balance при этом
+//в кнопке должна показываться стрелка в какую сторону сейчас отсортированы
+//пользователи. Иконки можете взять с font awesome, в качестве фреймворка
+//использовался bootstrap.
+
+function toSortTable(el) {
+  const sortUsers = users.sort(
+    (elA, elB) =>
+      el.srcElement.dataset.nextSortType * (elA.balance - elB.balance)
+  );
+
+  el.srcElement.dataset.nextSortType *= -1; //менЯет направление сортировки
+  el.srcElement.querySelector("i").classList.toggle("turn"); //toggle :)
+
+  if (tblContainer.querySelector("table"))
+    tblContainer.querySelector("table").remove();
+  tblContainer.appendChild(createTabelUsers(tableFields, sortUsers));
+}
+
+//Стиль .turn развернутой на 180' стрелочки
+const icnTurn = document.createElement("style");
+icnTurn.type = "text/css";
+icnTurn.innerText = `.turn { transform: rotate(180deg); }`;
+document.head.appendChild(icnTurn);
+
+const icnSort = document.createElement("i");
+icnSort.className = "fas fa-arrow-up ml-2";
+
+const btnSort = document.createElement("button");
+btnSort.type = "button";
+btnSort.className = "btn btn-primary btn-sm m-2 pr-2";
+btnSort.textContent = "Sort by Balance";
+btnSort.dataset.nextSortType = "1";
+
+btnSort.appendChild(icnSort);
+tblContainer.insertAdjacentElement("afterbegin", btnSort);
+
+btnSort.addEventListener("click", toSortTable);
+btnSort.click(); //Сразу сортируем данные
